@@ -92,8 +92,6 @@ def entrada():
     tipo = request.form.get('tipo')
     imagem = request.files.get("imagem") # Captura os dados enviados pelo editar.html
 
-    caminho_imagem = "" # Variável vazia para receber imagem
-
     if imagem: # Se o usuário mandou uma imagem
         nome_arquivo = secure_filename(imagem.filename) # Garante que o nome do arquivo seja seguro
 
@@ -104,6 +102,16 @@ def entrada():
         imagem.save(caminho_salvar) # Salva a imagem na pasta uploads
 
         caminho_imagem = url_for('static', filename=f'uploads/{nome_arquivo}') # Monta a url para exibir na tabela
+
+    else:
+        conexao = get_db()
+        cursor = conexao.cursor()
+
+        cursor.execute("SELECT imagem FROM estoque WHERE nome = %s", (nome,))
+        foto = cursor.fetchone()
+        caminho_imagem = foto[0]
+        cursor.close()
+        conexao.close()
 
     if not nome or not qtde or not responsavel or not tipo: # Se algum campo obrigatório não for preenchido
         return jsonify({"success": False, "erro": "Campos obrigatórios"}), 400 # Bad request
